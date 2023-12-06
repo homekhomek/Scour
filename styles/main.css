@@ -1,0 +1,88 @@
+@font-face {
+    font-family: 'yoster';
+    src: url('yoster.ttf') format('truetype');
+}
+
+html,
+body {
+    background-color: #1f1723;
+    margin: 0;
+    padding: 0;
+    overscroll-behavior: none;
+    font-family: yoster;
+}
+
+body * {
+    font-family: yoster;
+    position: absolute;
+    color: #e2e2e2;
+    background-color: #1f1723;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#myTeam {}
+
+#nextMatch {
+    width: calc(25% - 10px);
+    height: 500px;
+    right: 10px;
+    top: 10px;
+    border: 5px solid #3c2f52;
+    color: #3c2f52;
+}
+
+#nextMatchText {
+    font-size: 50px;
+    width: 100%;
+    top: 200px;
+    color: #3c2f52;
+}
+
+#nextMatch.matchEnabled:hover {
+    border: 10px dashed #b22741;
+    cursor: pointer;
+
+}
+
+#nextMatch.matchEnabled:hover * {
+    color: #b22741;
+}
+
+#myTeam {
+    height: calc(100vh - 520px);
+    top: 520px;
+    width: calc(100% - 20px);
+    left: 10px;
+}
+
+#goldCounter {
+    top: 0;
+    left: 0;
+    height: calc(50% - 5px);
+    width: 150px;
+}
+
+#goldText,
+#lvlText {
+    font-size: 20px;
+    width: 100%;
+    top: calc(50% - 20px)
+}
+
+#goldText {
+    color: #efd081
+}
+
+#lvlText {
+    color: #4995f3
+}
+
+
+#lvlCounter {
+    top: 50%;
+    left: 0;
+    height: calc(50% - 5px);
+    width: 150px;
+    background-color: #4656a5;
+}
