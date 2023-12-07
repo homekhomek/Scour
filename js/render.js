@@ -16,10 +16,40 @@ function renderMyTeam() {
             }
         }
 
+        var shopHtml = ``;
+        for (var k = 0; k < 2; k++) {
+            var curShopChoice = curTeammate.shopChoices[k];
+            var statText = '';
+            if (curShopChoice.stats) {
+                var statCounter = 0;
+                var statsTotal = Object.keys(curShopChoice.stats).length
+                for (let statName in curShopChoice.stats) {
+                    statText += `<span style="color: ${getColorFromStatName(statName)}">${curShopChoice.stats[statName]} ${translateStatName(statName)}</span>`
+                    statCounter++;
+                    if (statCounter < statsTotal)
+                        statText += ", ";
+                }
+                statText += "<br>";
+            }
+            if (curShopChoice.ability != undefined) {
+                statText += "ABL: " + abilityList[curShopChoice.ability].desc;
+            }
+            shopHtml += `
+            <div class="shopChoice${1 + k} shopChoice">
+                <div class="shopChoiceName">${curShopChoice.choiceName}</div>
+                <div class="cost">${curShopChoice.cost} gold</div>
+                <div class="shopDesc">
+                   ${statText}
+                </div>
+            </div>
+            `;
+
+        }
+
         teamContainerDiv.innerHTML += `
         <div class="teamMate">
             <div class="unitPortrait" style="background-image: url('img/${curTeammate.classType}.png');"></div>
-            <div class="unitName">${curTeammate.characterName}</div>
+            <div class="unitName" style="color: ${getColorFromClass(curTeammate.classType)}">${curTeammate.characterName}</div>
             <div class="stats">
                 <span class="statsText">-- STATS --</span><br>
                 <span class="healthText">${curTeammate.health} VIT</span><br>
@@ -35,18 +65,7 @@ function renderMyTeam() {
             </div>
             <div class="shopLabel">-- SHOP --</div>
             <div class="shopChoices">
-                <div class="shopChoice1 shopChoice">
-                    <div class="cost">5 gold</div>
-                    <div class="shopDesc">
-                        5 VIT
-                    </div>
-                </div>
-                <div class="shopChoice2 shopChoice">
-                    <div class="cost">5 gold</div>
-                    <div class="shopDesc">
-                        ABL: first hit does x2 dmg
-                    </div>
-                </div>
+                ${shopHtml}
             </div>
         </div>`;
     }

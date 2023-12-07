@@ -15,12 +15,15 @@ var myTeam = [
 		atk: [1, 4],
 		health: 10,
 		speed: 10,
-		knockback: 200,
 		classType: "crusader",
 		abilities: [0],
 		shopChoices: []
 	}
 ];
+
+myTeam.forEach((myChar) => {
+	reRollShop(myChar);
+});
 
 
 
@@ -79,6 +82,9 @@ function draw() {
 	background('#1f1723');
 
 	if (!matchGoing) {
+
+		strokeWeight(10);
+		stroke("black");
 		fill("#e2e2e2")
 		textSize(50);
 		text('Waiting for next match...', canvasScreenWidth / 2, canvasScreenHeight / 2 + Math.sin(Date.now() / 300) * 5);
@@ -94,11 +100,16 @@ function draw() {
 			spr.invincFrames--;
 
 		spr.vel.x *= .96;
+
+		strokeWeight(0);
 		spr.draw();
 
+		strokeWeight(2);
+		stroke("black");
 		fill("#b4e656");
 		rect(spr.x - spr.sizeVal / 2, spr.y + spr.sizeVal / 2 + 5, spr.sizeVal * (spr.health / spr.initHealth), 5);
 		fill("#f5464c")
+		strokeWeight(4);
 		textSize(13);
 		text(`${spr.atk[0]}`, spr.x - 7, spr.y + spr.sizeVal / 2 + 28 - 4);
 		textSize(16);
@@ -114,7 +125,7 @@ function draw() {
 		hitInd.life++;
 
 		fill(hitInd.color)
-		strokeWeight(2)
+		strokeWeight(4);
 		stroke("black");
 		textSize(20);
 		text(`${hitInd.dmg}`, hitInd.x, hitInd.y - Math.pow(hitInd.life / hitIndicatorLifeTime, .5) * 20);
@@ -131,6 +142,7 @@ function draw() {
 }
 
 function setCameraPos() {
+
 	camera.x = Math.max(
 		canvasScreenWidth / 2,
 		myTeamSprs.reduce((curMax, curSpr) => Math.max(curSpr.x, curMax), 0)
@@ -212,7 +224,6 @@ function getEnemyTeam() {
 			atk: [1, 3],
 			health: 10,
 			speed: 8,
-			knockback: 200,
 			classType: "crusader",
 			abilities: [],
 			shopChoices: []
@@ -223,7 +234,7 @@ function getEnemyTeam() {
 			atk: [1, 3],
 			health: 10,
 			speed: 8,
-			knockback: 200,
+
 			classType: "crusader",
 			abilities: [],
 			shopChoices: []
@@ -269,9 +280,9 @@ function generateSpriteForTeamFromData(team, sprData) {
 	unitSpr.atk[1] = sprData.atk[1];
 	unitSpr.spd = sprData.speed;
 	unitSpr.health = sprData.health;
-	unitSpr.knockback = sprData.knockback;
 	unitSpr.y = 300 - sprData.size - 5;
 	unitSpr.mass = 1;
+	unitSpr.color = getColorFromClass(sprData.classType);
 	invincFrames = 0;
 
 	unitSpr.abilities = sprData.abilities;
@@ -297,5 +308,39 @@ function attemptNextFloor() {
 
 	generateTeamsInSketch();
 }
+
+function reRollShop(curChar) {
+	curChar.shopChoices = [];
+	var maxRoll = 0;
+	var posChoices = shopMasterList.filter((curShopChoice, choiceShopIndex) => {
+		if (!curShopChoice.classesFor.includes(curChar.classType))
+			return false;
+
+		if (curShopChoice.ability != undefined && (abilityList[curShopChoice.ability].unique && curChar.abilities.includes(curShopChoice.ability)))
+			return false;
+
+		maxRoll += curShopChoice.rarity;
+		return true;
+	})
+
+
+	for (var i = 0; i < 2; i++) {
+		var curRoll = Math.floor(Math.random() * maxRoll);
+		for (var j = 0; j < posChoices.length; j++) {
+			console.log(curRoll)
+
+			if (curRoll - posChoices[j].rarity < 0) {
+				curChar.shopChoices.push(posChoices[j])
+				break;
+			}
+
+			curRoll -= posChoices[j].rarity;
+		}
+	}
+
+	console.log(curChar.shopChoices);
+	renderAll();
+}
+
 
 renderAll();

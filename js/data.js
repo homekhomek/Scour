@@ -1,8 +1,36 @@
 var shopMasterList = [
     {
+        choiceName: "Holy Strike",
         classesFor: ["crusader"],
         cost: 10,
+        rarity: 5,
         ability: 0
+    },
+    {
+        choiceName: "Last Defiance",
+        classesFor: ["crusader"],
+        cost: 10,
+        rarity: 5,
+        ability: 1
+    },
+    {
+        choiceName: "Ham",
+        classesFor: ["crusader"],
+        cost: 2,
+        rarity: 5,
+        stats: {
+            vit: 3
+        }
+    },
+    {
+        choiceName: "Sword Upgrade",
+        classesFor: ["crusader"],
+        cost: 4,
+        rarity: 5,
+        stats: {
+            minAtk: 1,
+            maxAtk: 1
+        }
     }
 ];
 
@@ -23,5 +51,15 @@ var abilityList = [
                 myChar[`healHit${abilityIndex}`] = 0;
             }
         }
+    },
+    {
+        desc: `<span class="atkText">5 dmg</span> to all enemies on death`,
+        unique: true,
+        onDie: (myChar, abilityIndex) => {
+            enemyTeamSprs.forEach((spr) => {
+                damage(spr, 5);
+            })
+        },
+
     }
 ];
