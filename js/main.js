@@ -113,7 +113,6 @@ function hit(myTeamSpr, enemyTeamSpr) {
 	enemyTeamSpr.invincFrames = 10;
 
 	shakeScreen = 7;
-
 }
 
 function getEnemyTeam() {

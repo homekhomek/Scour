@@ -12,20 +12,21 @@ body {
     font-family: yoster;
 }
 
-body * {
+body *:not(span) {
     font-family: yoster;
     position: absolute;
     color: #e2e2e2;
     background-color: #1f1723;
     text-align: center;
     box-sizing: border-box;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    background-size: cover;
 }
-
-#myTeam {}
 
 #nextMatch {
     width: calc(25% - 10px);
-    height: 500px;
+    height: 400px;
     right: 10px;
     top: 10px;
     border: 5px solid #3c2f52;
@@ -35,7 +36,7 @@ body * {
 #nextMatchText {
     font-size: 50px;
     width: 100%;
-    top: 200px;
+    top: calc(50% - 50px);
     color: #3c2f52;
 }
 
@@ -50,8 +51,8 @@ body * {
 }
 
 #myTeam {
-    height: calc(100vh - 520px);
-    top: 520px;
+    height: calc(100vh - 420px);
+    top: 420px;
     width: calc(100% - 20px);
     left: 10px;
 }
@@ -85,4 +86,133 @@ body * {
     height: calc(50% - 5px);
     width: 150px;
     background-color: #4656a5;
+}
+
+#teamWrapper {
+    height: 100%;
+    width: calc(100% - 160px);
+    left: 160px;
+    overflow-y: hidden;
+    overflow-x: scroll;
+}
+
+#teamContainer {
+    top: 10px;
+    left: 10px;
+    height: calc(100% - 20px);
+    width: 2000px;
+
+}
+
+.teamMate {
+    height: 100%;
+    width: 300px;
+
+}
+
+.unitName {
+    font-size: 28px;
+    width: 100%;
+    height: 30px;
+}
+
+.unitPortrait {
+    width: 128px;
+    height: 128px;
+    top: 40px;
+    left: 10px;
+    background-color: green;
+}
+
+
+.stats {
+    text-align: left;
+    width: calc(100% - 128px - 30px);
+    right: 10px;
+    top: 40px;
+    height: 128px;
+    font-size: 16px;
+}
+
+.healthText {
+    color: #3ec54b;
+}
+
+.atkText {
+    color: #f5464c;
+}
+
+.defText {
+    color: #d86830;
+}
+
+.abilityLabel {
+    top: 178px;
+    width: 100%;
+}
+
+.abilityWrapper {
+    top: 198px;
+    width: calc(100% - 10px);
+    left: 10px;
+    height: 80px;
+    overflow-y: auto;
+}
+
+.abilitySlots {
+    width: calc(100% - 10px);
+    left: 5px;
+    background-color: blue;
+}
+
+.ability {
+    width: 100%;
+    height: 25px;
+    padding-top: 3px;
+    background-color: rgba(0, 0, 0, .2);
+    border-radius: 5px;
+}
+
+.shopLabel {
+    top: 288px;
+    width: 100%;
+}
+
+.shopChoices {
+    top: 308px;
+    width: 100%;
+    height: calc(100% - 308px);
+}
+
+.shopChoice {
+    height: calc(100% - 20px);
+    top: 10px;
+    width: calc(50% - 15px);
+    cursor: pointer;
+    background-color: transparent;
+}
+
+.shopChoice:hover {
+    transform: scale(1.1);
+}
+
+.cost {
+    width: 100%;
+    color: #efd081;
+    padding-bottom: 3px;
+    font-size: 25px;
+    border-bottom: 3px dashed #efd081;
+}
+
+.shopDesc {
+    top: 40px;
+    width: 100%;
+}
+
+.shopChoice1 {
+    left: 10px;
+}
+
+.shopChoice2 {
+    right: 10px;
 }
