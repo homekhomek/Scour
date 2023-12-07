@@ -10,7 +10,7 @@
 
 <body>
 
-	<div id="nextMatch" class="matchEnabled">
+	<div id="nextMatch" class="matchEnabled" onclick="attemptNextFloor()">
 		<div id="nextMatchText">
 			NEXT<br>MATCH!
 		</div>
@@ -26,44 +26,7 @@
 		<div id="teamLabel">MY TEAM</div>
 		<div id="teamWrapper">
 			<div id="teamContainer">
-				<div class="teamMate">
-					<div class="unitPortrait" style="background-image: url('img/crusader.png');"></div>
-					<div class="unitName">John Castleford</div>
-					<div class="stats">
-						<span class="statsText">STATS ---</span><br>
-						<span class="healthText">25 VIT</span><br>
-						<span class="atkText">2-5 ATK</span><br>
-						<span class="defText">0 DEF</span><br>
-					</div>
-					<div class="abilityLabel">-- ABILITIES --</div>
-					<div class="abilityWrapper">
-						<div class="abilitySlots">
-							<div class="ability">
-								every <span class="atkText">3 hits</span>, <span class="healthText">heal 2</span>
-							</div>
-							<div class="ability">
-							</div>
-							<div class="ability">
-							</div>
-						</div>
-					</div>
-					<div class="shopLabel">-- SHOP --</div>
-					<div class="shopChoices">
-						<div class="shopChoice1 shopChoice">
-							<div class="cost">5 gold</div>
-							<div class="shopDesc">
-								5 VIT
-							</div>
-						</div>
-						<div class="shopChoice2 shopChoice">
-							<div class="cost">5 gold</div>
-							<div class="shopDesc">
-								ABL: first hit does x2 dmg
-							</div>
 
-						</div>
-					</div>
-				</div>
 			</div>
 		</div>
 
@@ -74,6 +37,8 @@
 	<script src="node_modules/p5play/planck.min.js"></script>
 	<script src="node_modules/p5play/p5play.js"></script>
 	<script src="js/const.js"></script>
+	<script src="js/data.js"></script>
+	<script src="js/render.js"></script>
 	<script src="js/main.js"></script>
 </body>
 

@@ -6,5 +6,6 @@ const canvasScreenWidth = window.innerWidth * .75 - 20;
 const canvasScreenHeight = 400;
 const worldGravity = 10;
 
-
-const screenShakeIntensity = 8;
+const hitIndicatorLifeTime = 20;
+const screenShakeIntensity = 10;
+const defaultKnockback = 400;
