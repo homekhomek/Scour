@@ -22,9 +22,11 @@ body *:not(span) {
     image-rendering: pixelated;
     background-repeat: no-repeat;
     background-size: cover;
+    transition: all 0.5s ease;
 }
 
 #nextMatch {
+    transition: none;
     width: calc(25% - 10px);
     height: 400px;
     right: 10px;
@@ -34,6 +36,7 @@ body *:not(span) {
 }
 
 #nextMatchText {
+    transition: none;
     font-size: 50px;
     width: 100%;
     top: calc(50% - 50px);

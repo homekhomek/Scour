@@ -5,7 +5,8 @@ var pauseFrames = 0;
 
 var battleCanvas;
 var matchGoing = false;
-var myGold = 0;
+var canBuy = true;
+var myGold = 100;
 var myFloor = 0;
 var hitIndicators = [];
 var myTeam = [
@@ -24,8 +25,6 @@ var myTeam = [
 myTeam.forEach((myChar) => {
 	reRollShop(myChar);
 });
-
-
 
 let allUnitsSprs,
 	myTeamSprs,
@@ -73,7 +72,6 @@ function setup() {
 
 	frameRate(60);
 
-	console.log(battleCanvas)
 	textAlign(CENTER);
 	textFont(yosterFont);
 }
@@ -82,67 +80,67 @@ function draw() {
 	background('#1f1723');
 
 	if (!matchGoing) {
-
+		clear();
 		strokeWeight(10);
 		stroke("black");
 		fill("#e2e2e2")
 		textSize(50);
 		text('Waiting for next match...', canvasScreenWidth / 2, canvasScreenHeight / 2 + Math.sin(Date.now() / 300) * 5);
 	}
+	else {
+		checkWin();
 
-	camera.on();
+		camera.on();
 
-	groundSprs.draw();
+		groundSprs.draw();
 
-	allUnitsSprs.forEach((spr, i) => {
-		spr.applyForce(spr.spd);
-		if (spr.invincFrames > 0)
-			spr.invincFrames--;
+		allUnitsSprs.forEach((spr, i) => {
+			spr.applyForce(spr.spd);
+			if (spr.invincFrames > 0)
+				spr.invincFrames--;
 
-		spr.vel.x *= .96;
+			spr.vel.x *= velocityDampening;
 
-		strokeWeight(0);
-		spr.draw();
+			strokeWeight(0);
+			spr.draw();
 
-		strokeWeight(2);
-		stroke("black");
-		fill("#b4e656");
-		rect(spr.x - spr.sizeVal / 2, spr.y + spr.sizeVal / 2 + 5, spr.sizeVal * (spr.health / spr.initHealth), 5);
-		fill("#f5464c")
-		strokeWeight(4);
-		textSize(13);
-		text(`${spr.atk[0]}`, spr.x - 7, spr.y + spr.sizeVal / 2 + 28 - 4);
-		textSize(16);
-		text(`${spr.atk[1]}`, spr.x + 7, spr.y + spr.sizeVal / 2 + 28 + 4);
-	})
-
-
-	setCameraPos();
-
+			strokeWeight(2);
+			stroke("black");
+			fill("#b4e656");
+			rect(spr.x - spr.sizeVal / 2, spr.y + spr.sizeVal / 2 + 5, spr.sizeVal * (spr.health / spr.initHealth), 5);
+			fill("#f5464c")
+			strokeWeight(4);
+			textSize(13);
+			text(`${spr.atk[0]}`, spr.x - 7, spr.y + spr.sizeVal / 2 + 28 - 4);
+			textSize(16);
+			text(`${spr.atk[1]}`, spr.x + 7, spr.y + spr.sizeVal / 2 + 28 + 4);
+		})
 
 
-	hitIndicators.forEach((hitInd) => {
-		hitInd.life++;
+		setCameraPos();
 
-		fill(hitInd.color)
-		strokeWeight(4);
-		stroke("black");
-		textSize(20);
-		text(`${hitInd.dmg}`, hitInd.x, hitInd.y - Math.pow(hitInd.life / hitIndicatorLifeTime, .5) * 20);
-	})
+		hitIndicators.forEach((hitInd) => {
+			hitInd.life++;
 
-	hitIndicators = hitIndicators.filter((hitInd) => { return hitInd.life <= hitIndicatorLifeTime });
+			fill(hitInd.color);
+			strokeWeight(4);
+			stroke("black");
+			textSize(20);
+			text(`${hitInd.dmg}`, hitInd.x, hitInd.y - Math.pow(hitInd.life / hitIndicatorLifeTime, .5) * 20);
+		})
 
-	camera.off();
-	if (pauseFrames > 0)
-		pauseFrames--
-	else
-		world.step(1 / 60);
+		hitIndicators = hitIndicators.filter((hitInd) => { return hitInd.life <= hitIndicatorLifeTime });
 
+		camera.off();
+		if (pauseFrames > 0)
+			pauseFrames--
+		else
+			world.step(1 / 60);
+
+	}
 }
 
 function setCameraPos() {
-
 	camera.x = Math.max(
 		canvasScreenWidth / 2,
 		myTeamSprs.reduce((curMax, curSpr) => Math.max(curSpr.x, curMax), 0)
@@ -182,12 +180,17 @@ function meleeHit(hitterSpr, victimSpr) {
 
 function damage(victimSpr, dmg) {
 	victimSpr.health -= dmg;
-	hitIndicators.push({ x: victimSpr.x, y: victimSpr.y, dmg: dmg, life: 0, color: "#f5464c" });
+	createIndicator(victimSpr.x, victimSpr.y, dmg, "#f5464c");
 	checkDeath(victimSpr);
 }
 
-function checkDeath(spr, checkWin = true) {
+function checkDeath(spr, z = true) {
 	if (spr.health <= 0) {
+		spr.abilities.forEach((abl, ablIndx) => {
+			if (abilityList[abl].onDie) {
+				abilityList[abl].onDie(spr, ablIndx);
+			}
+		})
 		spr.remove();
 	}
 }
@@ -205,15 +208,27 @@ function checkWin() {
 }
 
 function myWin() {
-
+	myGold += 10;
+	endMatch();
 }
 
 function myLoss() {
-
+	endMatch();
 }
 
 function myTie() {
+	endMatch();
+}
 
+function endMatch() {
+	allUnitsSprs.remove();
+	myTeam.forEach((curChar) => {
+		reRollShop(curChar);
+	})
+	myFloor += 1;
+	matchGoing = false;
+	document.getElementById("nextMatch").classList.add("matchEnabled");
+	renderAll();
 }
 
 function getEnemyTeam() {
@@ -225,34 +240,23 @@ function getEnemyTeam() {
 			health: 10,
 			speed: 8,
 			classType: "crusader",
-			abilities: [],
+			abilities: [1],
 			shopChoices: []
 		},
-		{
-			characterName: "Goblin",
-			size: 30,
-			atk: [1, 3],
-			health: 10,
-			speed: 8,
-
-			classType: "crusader",
-			abilities: [],
-			shopChoices: []
-		}
 	]
 }
 
 function generateTeamsInSketch() {
 	var distFromLeft = 5;
 	myTeam.forEach((val, ind) => {
-		console.log(myTeamSprs)
 
 		var unitSpr = generateSpriteForTeamFromData(myTeamSprs, val);
 
 		unitSpr.bearing = 0;
 		unitSpr.x = distFromLeft + unitSpr.sizeVal;
 		distFromLeft += unitSpr.sizeVal * 2 + 5;
-		console.log(unitSpr);
+		unitSpr.enemyTeam = enemyTeamSprs;
+		unitSpr.myTeam = myTeamSprs;
 	});
 
 
@@ -264,11 +268,12 @@ function generateTeamsInSketch() {
 		unitSpr.bearing = 180;
 		unitSpr.x = distFromRight - unitSpr.sizeVal;
 		distFromRight -= unitSpr.sizeVal * 2 + 5;
+		unitSpr.enemyTeam = myTeamSprs;
+		unitSpr.myTeam = enemyTeamSprs;
 	});
 }
 
 function generateSpriteForTeamFromData(team, sprData) {
-	console.log(team);
 	var unitSpr = new team.Sprite();
 
 	unitSpr.initHealth = sprData.health;
@@ -300,7 +305,6 @@ function attemptNextFloor() {
 	if (matchGoing) {
 		return;
 	}
-
 	matchGoing = true;
 
 	// Disable the next match button animation
@@ -310,6 +314,7 @@ function attemptNextFloor() {
 }
 
 function reRollShop(curChar) {
+
 	curChar.shopChoices = [];
 	var maxRoll = 0;
 	var posChoices = shopMasterList.filter((curShopChoice, choiceShopIndex) => {
@@ -321,13 +326,12 @@ function reRollShop(curChar) {
 
 		maxRoll += curShopChoice.rarity;
 		return true;
-	})
+	});
 
 
 	for (var i = 0; i < 2; i++) {
 		var curRoll = Math.floor(Math.random() * maxRoll);
 		for (var j = 0; j < posChoices.length; j++) {
-			console.log(curRoll)
 
 			if (curRoll - posChoices[j].rarity < 0) {
 				curChar.shopChoices.push(posChoices[j])
@@ -338,9 +342,58 @@ function reRollShop(curChar) {
 		}
 	}
 
-	console.log(curChar.shopChoices);
 	renderAll();
 }
 
+
+
+function buyShopChoice(charIndex, shopIndex) {
+	if (!canBuy || matchGoing)
+		return;
+
+	canBuy = false;
+
+	var curChar = myTeam[charIndex];
+	var curShopChoice = curChar.shopChoices[shopIndex];
+
+	if (curShopChoice.cost <= myGold) {
+		myGold -= curShopChoice.cost;
+
+
+		document.getElementById(`teammate${charIndex}`).style.transform = "scale(.9)";
+		document.getElementById(`teammate${charIndex}`).getElementsByClassName("shopChoice").forEach((el) => {
+			el.style.opacity = "0";
+		})
+
+		setTimeout(() => {
+			if (curShopChoice.stats) {
+				if (curShopChoice.stats.vit)
+					curChar.health += curShopChoice.stats.vit;
+
+				if (curShopChoice.stats.minAtk) {
+					curChar.atk[0]++;
+					curChar.atk[1]++;
+				}
+
+			}
+
+			if (curShopChoice.ability != undefined)
+				curChar.abilities.push(curShopChoice.ability);
+
+
+			document.getElementById(`teammate${charIndex}`).style.transform = "scale(1)";
+
+			setTimeout(() => {
+				canBuy = true;
+				reRollShop(curChar);
+				renderAll();
+			}, 500);
+		}, 500);
+
+
+	}
+
+
+}
 
 renderAll();

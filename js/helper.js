@@ -12,7 +12,7 @@ function getColorFromStatName(statName) {
         return "#b4e656";
     }
     else if (statName == "minAtk") {
-        return "#f5464c";
+        return "#f5464c ";
     }
     else if (statName == "maxAtk") {
         return "#f5464c";
@@ -29,4 +29,26 @@ function translateStatName(statName) {
     else if (statName == "maxAtk") {
         return "MAX ATK";
     }
+}
+
+function createIndicator(x, y, txt, txtColor) {
+    var curInd = {
+        life: 0,
+        x: x,
+        y: y,
+        dmg: txt,
+        color: txtColor
+    };
+
+    var yOffset = 0;
+
+    for (var i = 0; i < hitIndicators.length; i++) {
+        if (hitIndicators[i].x == x && hitIndicators[i].life == 0) {
+            yOffset -= 20;
+        }
+    }
+
+    curInd.y += yOffset;
+
+    hitIndicators.push(curInd);
 }

@@ -46,7 +46,9 @@ var abilityList = [
             myChar[`healHit${abilityIndex}`] += 1;
 
             if (myChar[`healHit${abilityIndex}`] >= 3) {
-                hitIndicators.push({ x: myChar.x, y: myChar.y - 20, dmg: 5, life: 0, color: "#b4e656" });
+                createIndicator(myChar.x, myChar.y, "5", "#b4e656");
+
+                console.log(hitIndicators);
                 myChar.health += 5;
                 myChar[`healHit${abilityIndex}`] = 0;
             }
@@ -56,7 +58,7 @@ var abilityList = [
         desc: `<span class="atkText">5 dmg</span> to all enemies on death`,
         unique: true,
         onDie: (myChar, abilityIndex) => {
-            enemyTeamSprs.forEach((spr) => {
+            myChar.enemyTeam.forEach((spr) => {
                 damage(spr, 5);
             })
         },

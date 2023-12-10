@@ -35,7 +35,7 @@ function renderMyTeam() {
                 statText += "ABL: " + abilityList[curShopChoice.ability].desc;
             }
             shopHtml += `
-            <div class="shopChoice${1 + k} shopChoice">
+            <div class="shopChoice${1 + k} shopChoice" onclick="buyShopChoice(${i},${k})">
                 <div class="shopChoiceName">${curShopChoice.choiceName}</div>
                 <div class="cost">${curShopChoice.cost} gold</div>
                 <div class="shopDesc">
@@ -47,7 +47,7 @@ function renderMyTeam() {
         }
 
         teamContainerDiv.innerHTML += `
-        <div class="teamMate">
+        <div class="teamMate" id="teammate${i}">
             <div class="unitPortrait" style="background-image: url('img/${curTeammate.classType}.png');"></div>
             <div class="unitName" style="color: ${getColorFromClass(curTeammate.classType)}">${curTeammate.characterName}</div>
             <div class="stats">
