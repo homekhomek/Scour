@@ -6,16 +6,24 @@ var pauseFrames = 0;
 var battleCanvas;
 var matchGoing = false;
 var canBuy = true;
-var myGold = 100;
+
+var classList = ["crusader", "prophet", "brigand", "necromancer"]
+
+var nextHire = "prophet";
+var myGold = 0;
 var myFloor = 0;
+var myLives = 3;
+var matchOverTicks = 0;
 var hitIndicators = [];
 var myTeam = [
 	{
-		characterName: "Bracken",
+		characterName: "crusader".toUpperCase(),
 		size: 40,
-		atk: [1, 4],
-		health: 10,
-		speed: 10,
+		atk: [2, 3],
+		health: 20,
+		speed: 6,
+		poison: 0,
+		lvlPoints: 0,
 		classType: "crusader",
 		abilities: [0],
 		shopChoices: []
@@ -85,10 +93,20 @@ function draw() {
 		stroke("black");
 		fill("#e2e2e2")
 		textSize(50);
-		text('Waiting for next match...', canvasScreenWidth / 2, canvasScreenHeight / 2 + Math.sin(Date.now() / 300) * 5);
+		text('Waiting for next floor...', canvasScreenWidth / 2, canvasScreenHeight / 2 + Math.sin(Date.now() / 300) * 5);
 	}
 	else {
-		checkWin();
+		if (matchOverTicks == 0) {
+			checkWin();
+		}
+		else {
+			matchOverTicks--;
+
+			if (matchOverTicks == 0) {
+				endMatch();
+			}
+		}
+
 
 		camera.on();
 
@@ -101,19 +119,39 @@ function draw() {
 
 			spr.vel.x *= velocityDampening;
 
-			strokeWeight(0);
-			spr.draw();
+			fill(getColorFromClass(spr.classType));
+			strokeWeight(4);
+			textSize(10);
+			text(`${spr.charName}`, spr.x, spr.y - spr.sizeVal / 2 - 10);
+
+			spr.abilities.forEach((abl, ablIndx) => {
+				if (abilityList[abl].onTick) {
+					abilityList[abl].onTick(spr, ablIndx);
+				}
+			});
 
 			strokeWeight(2);
 			stroke("black");
+			spr.draw();
+
 			fill("#b4e656");
 			rect(spr.x - spr.sizeVal / 2, spr.y + spr.sizeVal / 2 + 5, spr.sizeVal * (spr.health / spr.initHealth), 5);
+
 			fill("#f5464c")
 			strokeWeight(4);
 			textSize(13);
-			text(`${spr.atk[0]}`, spr.x - 7, spr.y + spr.sizeVal / 2 + 28 - 4);
+			text(`${spr.atk[0]}`, spr.x - 9, spr.y + spr.sizeVal / 2 + 28 - 4);
+
 			textSize(16);
-			text(`${spr.atk[1]}`, spr.x + 7, spr.y + spr.sizeVal / 2 + 28 + 4);
+			text(`${spr.atk[1]}`, spr.x + 9, spr.y + spr.sizeVal / 2 + 28 + 4);
+
+			if (spr.faith > 0) {
+				fill("#4995f3")
+				strokeWeight(4);
+				textSize(14);
+				text(`${spr.faith}`, spr.x, spr.y + spr.sizeVal / 2 + 47);
+			}
+
 		})
 
 
@@ -143,7 +181,7 @@ function draw() {
 function setCameraPos() {
 	camera.x = Math.max(
 		canvasScreenWidth / 2,
-		myTeamSprs.reduce((curMax, curSpr) => Math.max(curSpr.x, curMax), 0)
+		((allUnitsSprs.reduce((curTot, curSpr) => curTot + curSpr.x, 0) / allUnitsSprs.length) + camera.x) / 2
 	);
 	camera.y = arenaHeight / 2;
 
@@ -159,33 +197,96 @@ function onCollide(myTeamSpr, enemyTeamSpr) {
 	myTeamSpr.applyForce((-defaultKnockback * (enemyTeamSpr.sizeVal / myTeamSpr.sizeVal)) - random(0, 100), -random(50, 100));
 	enemyTeamSpr.applyForce((defaultKnockback * (myTeamSpr.sizeVal / enemyTeamSpr.sizeVal)) + random(0, 100), -random(50, 100));
 
-	meleeHit(myTeamSpr, enemyTeamSpr);
+	meleeHit(myTeamSpr, enemyTeamSpr, false);
 	meleeHit(enemyTeamSpr, myTeamSpr);
 
-	pauseFrames = 5;
-	shakeScreen = 5;
+	checkDeath(enemyTeamSpr);
 }
 
-function meleeHit(hitterSpr, victimSpr) {
-	var dmg = hitterSpr.atk[0] + floor(random(hitterSpr.atk[1]));
+function hireNew() {
+	if (matchGoing || myGold < getHireCost())
+		return;
+
+	myGold -= getHireCost();
+
+	var newChar = createNewCharacter();
+
+	myTeam.push(newChar);
+
+	reRollShop(newChar);
+
+	renderAll();
+
+}
+
+function rerollAll() {
+	if (matchGoing || myGold < 2)
+		return;
+
+	myGold -= 2;
+
+	myTeam.forEach((curChar) => {
+		reRollShop(curChar);
+	});
+
+	nextHire = classList[Math.floor(Math.random() * classList.length)];
+
+	renderAll();
+}
+
+function meleeHit(hitterSpr, victimSpr, doCheckDeath = true) {
+	var dmg = hitterSpr.atk[0] + floor(random(hitterSpr.atk[1] - hitterSpr.atk[0] + 1));
 	hitterSpr.abilities.forEach((abl, ablIndx) => {
 		if (abilityList[abl].onHit) {
-			abilityList[abl].onHit(hitterSpr, victimSpr, dmg, ablIndx);
+			dmg = abilityList[abl].onHit(hitterSpr, victimSpr, dmg, ablIndx);
 		}
 	})
 
-	damage(victimSpr, dmg);
+	if (hitterSpr.poison > 0) {
+		victimSpr.poisonCounter += hitterSpr.poison;
+	}
 
+	victimSpr.lastHitter = hitterSpr;
+
+	damage(victimSpr, dmg, doCheckDeath);
 }
 
-function damage(victimSpr, dmg) {
+function heal(victimSpr, dmg) {
+
+	victimSpr.health += dmg;
+	victimSpr.health = Math.min(victimSpr.health, victimSpr.maxHealth);
+	createIndicator(victimSpr.x, victimSpr.y, dmg, "#b4e656");
+}
+
+function damage(victimSpr, dmg, doCheckDeath = true) {
 	victimSpr.health -= dmg;
+
 	createIndicator(victimSpr.x, victimSpr.y, dmg, "#f5464c");
-	checkDeath(victimSpr);
+	if (victimSpr.poisonCounter > 0) {
+		victimSpr.health -= victimSpr.poisonCounter;
+		createIndicator(victimSpr.x, victimSpr.y, victimSpr.poisonCounter, "#3ec54b");
+		victimSpr.poisonCounter -= 1;
+	}
+
+
+	pauseFrames = 5;
+	shakeScreen = 5;
+
+	if (doCheckDeath)
+		checkDeath(victimSpr);
 }
 
-function checkDeath(spr, z = true) {
+function checkDeath(spr) {
 	if (spr.health <= 0) {
+
+		if (spr.lastHitter) {
+			spr.lastHitter.abilities.forEach((abl, ablIndx) => {
+				if (abilityList[abl].onKill) {
+					abilityList[abl].onKill(spr.lastHitter, spr, ablIndx);
+				}
+			});
+		}
+
 		spr.abilities.forEach((abl, ablIndx) => {
 			if (abilityList[abl].onDie) {
 				abilityList[abl].onDie(spr, ablIndx);
@@ -197,6 +298,39 @@ function checkDeath(spr, z = true) {
 
 function checkWin() {
 	if (myTeamSprs.length > 0 && enemyTeamSprs.length <= 0) {
+		matchOverTicks = 30;
+	}
+	else if (enemyTeamSprs.length > 0 && myTeamSprs.length <= 0) {
+		matchOverTicks = 30
+	}
+	else if (enemyTeamSprs.length <= 0 && myTeamSprs.length <= 0) {
+		matchOverTicks = 30
+	}
+}
+
+function myWin() {
+	myGold += 12;
+	resetMatch();
+}
+
+function myLoss() {
+	myLives -= 1;
+
+	if (myLives <= 0) {
+		alert(`You made it to floor ${myFloor}. Nice job!`);
+		location.reload();
+	}
+	myGold += 8;
+	resetMatch();
+}
+
+function myTie() {
+	myGold += 10;
+	resetMatch();
+}
+
+function endMatch() {
+	if (myTeamSprs.length > 0 && enemyTeamSprs.length <= 0) {
 		myWin();
 	}
 	else if (enemyTeamSprs.length > 0 && myTeamSprs.length <= 0) {
@@ -207,43 +341,23 @@ function checkWin() {
 	}
 }
 
-function myWin() {
-	myGold += 10;
-	endMatch();
-}
-
-function myLoss() {
-	endMatch();
-}
-
-function myTie() {
-	endMatch();
-}
-
-function endMatch() {
+function resetMatch() {
 	allUnitsSprs.remove();
-	myTeam.forEach((curChar) => {
-		reRollShop(curChar);
-	})
 	myFloor += 1;
+	myTeam.forEach((curChar) => {
+		curChar.lvlPoints += 1;
+	})
 	matchGoing = false;
+	nextHire = classList[Math.floor(Math.random() * classList.length)];
 	document.getElementById("nextMatch").classList.add("matchEnabled");
+	hitIndicators = [];
 	renderAll();
 }
 
 function getEnemyTeam() {
-	return [
-		{
-			characterName: "Goblin",
-			size: 20,
-			atk: [1, 3],
-			health: 10,
-			speed: 8,
-			classType: "crusader",
-			abilities: [1],
-			shopChoices: []
-		},
-	]
+	return enemyFloors[myFloor].map((enemyInd) => {
+		return repeatedEnemies[enemyInd]
+	});
 }
 
 function generateTeamsInSketch() {
@@ -285,9 +399,16 @@ function generateSpriteForTeamFromData(team, sprData) {
 	unitSpr.atk[1] = sprData.atk[1];
 	unitSpr.spd = sprData.speed;
 	unitSpr.health = sprData.health;
+	unitSpr.maxHealth = sprData.health;
+	unitSpr.poisonCounter = 0;
+	unitSpr.poison = sprData.poison;
+	unitSpr.faith = sprData.faith;
 	unitSpr.y = 300 - sprData.size - 5;
 	unitSpr.mass = 1;
+	unitSpr.lastHitter = null;
 	unitSpr.color = getColorFromClass(sprData.classType);
+	unitSpr.charName = sprData.characterName;
+	unitSpr.classType = sprData.classType;
 	invincFrames = 0;
 
 	unitSpr.abilities = sprData.abilities;
@@ -330,16 +451,38 @@ function reRollShop(curChar) {
 
 
 	for (var i = 0; i < 2; i++) {
-		var curRoll = Math.floor(Math.random() * maxRoll);
-		for (var j = 0; j < posChoices.length; j++) {
+		if (i == 1) {
+			var secondChoice = -1;
 
-			if (curRoll - posChoices[j].rarity < 0) {
-				curChar.shopChoices.push(posChoices[j])
-				break;
+			while (secondChoice == -1 || secondChoice == curChar.shopChoices[0]) {
+				var curRoll = Math.floor(Math.random() * maxRoll);
+				for (var j = 0; j < posChoices.length; j++) {
+
+					if (curRoll - posChoices[j].rarity < 0) {
+						secondChoice = posChoices[j];
+						break;
+					}
+
+					curRoll -= posChoices[j].rarity;
+				}
 			}
 
-			curRoll -= posChoices[j].rarity;
+
+			curChar.shopChoices.push(secondChoice)
 		}
+		else {
+			var curRoll = Math.floor(Math.random() * maxRoll);
+			for (var j = 0; j < posChoices.length; j++) {
+
+				if (curRoll - posChoices[j].rarity < 0) {
+					curChar.shopChoices.push(posChoices[j])
+					break;
+				}
+
+				curRoll -= posChoices[j].rarity;
+			}
+		}
+
 	}
 
 	renderAll();
@@ -351,13 +494,13 @@ function buyShopChoice(charIndex, shopIndex) {
 	if (!canBuy || matchGoing)
 		return;
 
-	canBuy = false;
 
 	var curChar = myTeam[charIndex];
 	var curShopChoice = curChar.shopChoices[shopIndex];
 
-	if (curShopChoice.cost <= myGold) {
-		myGold -= curShopChoice.cost;
+	if (curShopChoice.cost <= curChar.lvlPoints) {
+		curChar.lvlPoints -= curShopChoice.cost;
+		canBuy = false;
 
 
 		document.getElementById(`teammate${charIndex}`).style.transform = "scale(.9)";
@@ -371,9 +514,27 @@ function buyShopChoice(charIndex, shopIndex) {
 					curChar.health += curShopChoice.stats.vit;
 
 				if (curShopChoice.stats.minAtk) {
-					curChar.atk[0]++;
-					curChar.atk[1]++;
+					curChar.atk[0] += curShopChoice.stats.minAtk;
+					curChar.atk[1] += curShopChoice.stats.minAtk;
 				}
+
+				if (curShopChoice.stats.maxAtk) {
+					curChar.atk[1] += curShopChoice.stats.maxAtk;
+				}
+
+				if (curShopChoice.stats.poi) {
+					curChar.poison += curShopChoice.stats.poi;
+				}
+
+				if (curShopChoice.stats.spd) {
+					curChar.speed += curShopChoice.stats.spd;
+					curChar.speed = Math.max(curChar.speed, 1);
+				}
+
+				if (curShopChoice.stats.faith) {
+					curChar.faith += curShopChoice.stats.faith;
+				}
+
 
 			}
 

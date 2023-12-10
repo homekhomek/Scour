@@ -8,6 +8,6 @@ const worldGravity = 10;
 
 const hitIndicatorLifeTime = 20;
 const screenShakeIntensity = 10;
-const defaultKnockback = 400;
+const defaultKnockback = 300;
 
 const velocityDampening = .96;

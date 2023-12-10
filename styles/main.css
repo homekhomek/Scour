@@ -60,28 +60,39 @@ body *:not(span) {
     left: 10px;
 }
 
-#goldCounter {
+#counters {
     top: 0;
     left: 0;
-    height: calc(50% - 5px);
+    height: 100%;
     width: 150px;
 }
 
 #goldText,
-#lvlText {
-    font-size: 20px;
+#lvlText,
+#liveText,
+#counterText {
+    font-size: 16px;
     width: 100%;
-    top: calc(50% - 20px)
 }
 
 #goldText {
+    top: 30px;
     color: #efd081
 }
 
 #lvlText {
+    top: 60px;
     color: #4995f3
 }
 
+#liveText {
+    top: 90px;
+    color: #f5464c;
+}
+
+#counterText {
+    top: 0;
+}
 
 #lvlCounter {
     top: 50%;
@@ -109,7 +120,6 @@ body *:not(span) {
 .teamMate {
     height: 100%;
     width: 350px;
-
 }
 
 .unitName {
@@ -123,7 +133,6 @@ body *:not(span) {
     height: 128px;
     top: 40px;
     left: 10px;
-    background-color: green;
 }
 
 
@@ -144,12 +153,20 @@ body *:not(span) {
     color: #f5464c;
 }
 
+.poiText {
+    color: #3ec54b;
+}
+
 .defText {
     color: #d86830;
 }
 
 .spdText {
     color: #72deeb;
+}
+
+.faithText {
+    color: #4995f3;
 }
 
 .abilityLabel {
@@ -163,6 +180,7 @@ body *:not(span) {
     left: 10px;
     height: 80px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .abilitySlots {
@@ -204,11 +222,17 @@ body *:not(span) {
 
 .cost {
     width: 100%;
-    color: #efd081;
+    color: #d86830;
     padding-bottom: 3px;
     font-size: 20px;
-    border-top: 2px dashed #efd081;
+    border-top: 2px dashed #d86830;
     bottom: 0px;
+}
+
+.lvls {
+    top: 288px;
+    right: 10px;
+    color: #d86830;
 }
 
 .shopChoiceName {
@@ -233,4 +257,40 @@ body *:not(span) {
 
 .shopChoice2 {
     right: 10px;
+}
+
+.goldSpan {
+    color: #efd081;
+}
+
+.hireButton {
+    transition: none;
+    width: 100%;
+    height: calc(50% - 5px);
+    top: 5px;
+    padding-top: 28%;
+    font-size: 20px;
+    border: 3px dashed #3c2f52;
+}
+
+.rerollAllButton {
+    transition: none;
+    width: 100%;
+    height: calc(50% - 5px);
+    top: calc(50% + 5px);
+    padding-top: 28%;
+    font-size: 20px;
+    border: 3px dashed #3c2f52;
+}
+
+.rerollAllButton:hover,
+.hireButton:hover {
+    cursor: pointer;
+    border: 5px dashed #d86830;
+    font-size: 25px;
+}
+
+#nextFloorInd {
+    top: 120px;
+    width: 100%;
 }
